@@ -36,7 +36,8 @@ function Chart() {
     const [data, setData] = useState( getlocalfun("linechart") ||  {"ethereum" : [],   "dogecoin" : [], "solana" : [] }); 
     const [newpersonName, setNewpersonName ] = useState(getlocalfun("linechartAsset") || []);
     const [personName, setPersonName] = React.useState( getlocalfun("linechartAsset") || []);
-
+        
+    // ----------  here the function called  on select tag change  -------------
       const handleChange = (event) => {
         const {
           target: { value },
@@ -66,7 +67,7 @@ function Chart() {
         );
       };
        
-
+      // -----  Here the function for gettting all asset data from api ------------------------------------
     const getdatafun = (name)=>{
          return axios.get(`https://api.coingecko.com/api/v3/coins/${name}/market_chart?vs_currency=usd&days=365&interval=daily`).then((res)=>{
             //console.log("ress", res.data.prices);
