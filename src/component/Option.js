@@ -4,7 +4,7 @@ export function Option(key, data){
 
     const option = {
         title: {
-          text: 'Stacked Area Chart'
+          text: `Line-chart of ${key} prices`
         },
         tooltip: {
           trigger: 'axis',

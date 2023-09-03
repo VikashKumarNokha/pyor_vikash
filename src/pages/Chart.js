@@ -1,8 +1,9 @@
-import React, { useEffect, useState } from 'react'
+import React, { useCallback, useEffect, useState } from 'react'
 
 import ReactEcharts from "echarts-for-react"; 
 import axios from 'axios';
 import { Option } from '../component/Option';
+import { getlocalfun, setlocalfun } from '../component/LocalStorage';
 
 import OutlinedInput from '@mui/material/OutlinedInput';
 import InputLabel from '@mui/material/InputLabel';
@@ -32,73 +33,75 @@ const names = [
 
 
 function Chart() {
-    const [data, setData] = useState({"ethereum" : [],   "dogecoin" : [], "solana" : [] });
-    
-    const [newpersonName, setNewpersonName ] = useState([]);
-    const [personName, setPersonName] = React.useState([]);
+    const [data, setData] = useState( getlocalfun("linechart") ||  {"ethereum" : [],   "dogecoin" : [], "solana" : [] }); 
+    const [newpersonName, setNewpersonName ] = useState(getlocalfun("linechartAsset") || []);
+    const [personName, setPersonName] = React.useState( getlocalfun("linechartAsset") || []);
+
       const handleChange = (event) => {
         const {
           target: { value },
         } = event;
+       
+        let personName = typeof value === 'string' ? value.split(',') : value ;
+
+        if(personName.length > newpersonName.length){
+          for(let i=0; i<personName.length; i++){
+              getdatafun(personName[i]);
+          }
+          setNewpersonName(personName)
+          setlocalfun("linechartAsset",personName)
+       }else if(personName.length < newpersonName.length){
+          for(let i=0; i<newpersonName.length; i++){
+              if(!personName.includes(newpersonName[i])){
+                 getdatafun(newpersonName[i]);
+              }
+          }
+          setNewpersonName(personName);
+          setlocalfun("linechartAsset",personName)
+       }
+
         setPersonName(
           // On autofill we get a stringified value.
           typeof value === 'string' ? value.split(',') : value,
         );
       };
-
+       
 
     const getdatafun = (name)=>{
          return axios.get(`https://api.coingecko.com/api/v3/coins/${name}/market_chart?vs_currency=usd&days=365&interval=daily`).then((res)=>{
             //console.log("ress", res.data.prices);
              if(name == "ethereum" && data["ethereum"].length == 0 ){
               setData( {...data, ethereum : res.data.prices } );
+              setlocalfun("linechart",{...data, ethereum : res.data.prices } );
              }else if(name == "ethereum" && data["ethereum"].length != 0){
-              setData( {...data, ethereum : [] } );   
+              setData( {...data, ethereum : [] } ); 
+                setlocalfun("linechart",{...data, ethereum : [] } )
              }
              else if(name == "dogecoin" && data["dogecoin"].length == 0 ){
                  setData({...data, dogecoin : res.data.prices });
+                 setlocalfun("linechart",{...data, dogecoin : res.data.prices } )
              }else if(name == "dogecoin" && data["dogecoin"].length != 0){
-              setData( {...data, dogecoin : [] } );              
+              setData( {...data, dogecoin : [] } );  
+              setlocalfun("linechart",{...data, dogecoin : [] })            
              }else if(name == "solana" && data["solana"].length == 0){
               setData({...data, solana : res.data.prices });
+              setlocalfun("linechart",{...data, solana : res.data.prices })
              }
              else if(name == "solana" && data["solana"].length != 0){
-                setData({...data, solana : []})
+                setData({...data, solana : []});
+                setlocalfun("linechart",{...data, solana : []})
              }     
              
          }).catch((err)=>{
            console.log('err', err);
          })
     }
-    
-     useEffect(()=>{
-       
-        if(personName.length > newpersonName.length){
-           for(let i=0; i<personName.length; i++){
-               getdatafun(personName[i]);
-           }
-           setNewpersonName(personName)
-        }else{
-           for(let i=0; i<newpersonName.length; i++){
-               if(!personName.includes(newpersonName[i])){
-                  getdatafun(newpersonName[i]);
-               }
-           }
-           setNewpersonName(personName);
-        }
-       
-     },[personName]);
 
-     console.log("dda", data)
-  
-  
-  
-   console.log("pp",personName)
 
   return (
     <div>
       <FormControl sx={{ m: 1, width: 600 }}>
-        <InputLabel id="demo-multiple-checkbox-label">Tag</InputLabel>
+        <InputLabel id="demo-multiple-checkbox-label">Asset</InputLabel>
         <Select
           labelId="demo-multiple-checkbox-label"
           id="demo-multiple-checkbox"
@@ -117,6 +120,7 @@ function Chart() {
           ))}
         </Select>
       </FormControl>
+      
       {
          Object.entries(data).map((e)=>{
              if(e[1].length != 0){
@@ -124,8 +128,16 @@ function Chart() {
              }
          })
       }
+       <h2>
+      {
+           Object.entries(data).filter((e)=>{
+            if(e[1].length != 0){
+                return true;
+            }
+        }).length == 0 ? "Please select asset" : ""
+      }
+      </h2>
      
-
     </div>
   )
 }
