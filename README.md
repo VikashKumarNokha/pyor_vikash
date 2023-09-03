@@ -1,7 +1,7 @@
 # Pyor_Assignment
 
 ## frontend
-https://unstop-vikash.vercel.app/?vercelToolbarCode=vbkQea59sZRluGc
+https://pyor-vikash.vercel.app/
 
 
 # To run this project do the following steps.
